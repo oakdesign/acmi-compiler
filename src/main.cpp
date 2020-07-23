@@ -18,6 +18,9 @@
 
 #include "FolderMonitor.h"
 
+#define COLOR_RED "\033[31m"
+#define COLOR_YELLOW "\033[93m"
+#define COLOR_RESET "\033[0m"
 
 std::string ExePath() {
 	char buffer[MAX_PATH];
@@ -56,9 +59,14 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		// Use default folder
-		folder = "C:\\Falcon BMS 4.33 U1\\User\\Acmi\\";
-		std::cout << "Executable not running in Acmi folder \nFalling back to default folder : C:\\Falcon BMS 4.33 U1\\User\\Acmi\\ " << std::endl;
+		// Switch to make Debug easier
+		//folder = "C:\\Falcon BMS 4.33 U1\\User\\Acmi\\";
+		folder = currentPath + "\\";
+		#if _DEBUG
+		folder = "D:\\FALCON\\Falcon BMS 4.34\\User\\Acmi\\";
+		#endif 
+
+		std::cout << "Executable running in an odd folder :\n		" << folder << "\n /!\\ Are you sure this is the Falcon BMS ACMI Folder ? /!\\" << std::endl;
 	}
 
 	// Monitor folder for filechange
@@ -101,13 +109,12 @@ int main(int argc, char* argv[])
 		return -42;
 	}
 
-	
-
 	while (foundAFile)
 	{
 		std::string fileName = fData.cFileName;
-		size_t position = fileName.find(".");
+		
 		// get name without extension
+		size_t position = fileName.find(".");
 		std::string extractName = (std::string::npos == position) ? fileName : fileName.substr(0, position);
 
 		std::strcpy(fltname, (folder + fData.cFileName).c_str());
@@ -122,6 +129,7 @@ int main(int argc, char* argv[])
 			clock_t t;
 			t = clock();
 
+			std::cout << "found file : " << fileName << std::endl;
 			printf("----- Starting conversion ----- \n\n");
 			if (newtape.Import(fltname, fname) == true)
 			{
@@ -129,6 +137,10 @@ int main(int argc, char* argv[])
 				printf("\n----- File converted with success in %d clicks (%f seconds). ----- \n\n\n", t, ((float)t) / CLOCKS_PER_SEC);
 
 				remove(fltname);
+			}
+			else
+			{
+				printf("\n%s[ERROR] - ERROR DURING THE CONVERSION SEE ABOVE ERROR \n Leaving the FLT file alone for debugging purpose \n\n\n%s", COLOR_RED, COLOR_RESET);
 			}
 		
 			//printf("It took me %d clicks (%f seconds).\n", t, ((float)t) / CLOCKS_PER_SEC);
